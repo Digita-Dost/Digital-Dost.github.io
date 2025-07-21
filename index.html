@@ -7,103 +7,176 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Digital Dost Yellow and Blue -->
-    <!-- Application Structure Plan: The application is structured as a single-page interactive portal. It starts with a hero section for immediate brand recognition and a clear call-to-action. The core is the 'Services' section, which uses an interactive tabbed layout. This design was chosen over a static list to allow users to easily filter and find specific services without being overwhelmed, thus improving usability. A new "AI-Powered Helpers" section has been added to showcase Gemini API integration, offering tangible value and a modern edge. It is followed by a simple 'How It Works' section to build trust and clarify the process. A floating WhatsApp button ensures the call-to-action is always accessible. This structure transforms a simple service list into a user-centric and professional-looking web application designed to convert visitors into customers. -->
-    <!-- Visualization & Content Choices: The source report is a list of services. Goal: Organize and present services clearly. Method: An interactive tabbed interface built with HTML, Tailwind CSS, and JavaScript. Interaction: Clicking a tab reveals the corresponding services. Justification: For text-based categorical data, interactive tabs are superior to a long, static list. The new AI section uses simple forms to collect user input and a modal to display the Gemini-generated text. This prevents layout shifts and provides a clean user experience. Goal: Provide value-added AI tools. Method: Gemini API for text generation. Interaction: User fills a form, clicks a button, and receives generated content (resume summaries, taglines) in a modal. Justification: This directly complements the core services (CV making, banner design) and serves as a powerful lead magnet. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Developer Comments:
+        - Enhanced UI/UX: This version introduces a more dynamic and visually appealing interface.
+        - Key Improvements:
+            1.  **Animations:** Added subtle scroll-triggered fade-in animations for sections to improve engagement.
+            2.  **Modern Styling:** Incorporated gradients, enhanced shadows, and a refined color palette for a premium feel.
+            3.  **Improved UX:** Replaced native browser alerts with a custom, non-blocking toast notification system for a smoother user experience.
+            4.  **Typography:** Used 'Inter' for body text for better readability while retaining 'Baloo Bhai 2' for branded headings.
+            5.  **Visual Hierarchy:** Redesigned cards and buttons to be more distinct and interactive.
+        - CONFIRMATION: NO SVG graphics used (except for inline SVGs for icons). NO Mermaid JS used.
+    -->
     <style>
+        :root {
+            --dd-yellow: #ffd60a;
+            --dd-blue: #0d47a1;
+            --dd-blue-dark: #0a3a82;
+            --bg-light: #f7fafc; /* Lighter, cleaner background */
+        }
         body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: #1a202c;
+        }
+        h1, h2, h3, h4, .font-display {
             font-family: 'Baloo Bhai 2', cursive;
-            background-color: #fefce8; /* A very light yellow, softer than the logo's for better readability */
         }
-        .digital-dost-yellow { background-color: #ffd60a; }
-        .digital-dost-blue { background-color: #0d47a1; }
-        .text-digital-dost-blue { color: #0d47a1; }
-        .border-digital-dost-blue { border-color: #0d47a1; }
+        .digital-dost-yellow { background-color: var(--dd-yellow); }
+        .digital-dost-blue-bg { background-color: var(--dd-blue); }
+        .text-digital-dost-blue { color: var(--dd-blue); }
+        .border-digital-dost-blue { border-color: var(--dd-blue); }
+        
+        .gradient-btn {
+            background-image: linear-gradient(to right, var(--dd-blue), var(--dd-blue-dark));
+        }
+        .gradient-btn:hover {
+            background-image: linear-gradient(to right, var(--dd-blue-dark), var(--dd-blue));
+        }
+        
         .tab.active {
-            background-color: #0d47a1;
+            background-color: var(--dd-blue);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+        
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #0d47a1;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffffff;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Scroll Animation */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background-color: white;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.5s ease-in-out;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
+        .toast-icon {
+            font-size: 20px;
+        }
     </style>
 </head>
 <body class="antialiased">
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
     <!-- Header -->
-    <header class="digital-dost-yellow shadow-md sticky top-0 z-50">
+    <header class="digital-dost-yellow shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3 flex items-center justify-center">
-            <img src="https://i.postimg.cc/mgzw2Pfb/IMG-20250721-224842.jpg" alt="Digital" class="h-16 w-16 mr-4 rounded-full border-2 border-white shadow-lg">
+            <img src="https://i.postimg.cc/mgzw2Pfb/IMG-20250721-224842.jpg" alt="Digital Dost Logo" class="h-16 w-16 mr-4 rounded-full border-4 border-white shadow-xl">
             <div>
-                <h1 class="text-3xl font-bold text-digital-dost-blue">DIGITAL DOST</h1>
-                <p class="text-sm text-gray-700 font-medium">તમામ ઓનલાઈન સેવાઓનું એક જ સ્થળ</p>
+                <h1 class="text-3xl lg:text-4xl font-extrabold text-digital-dost-blue">DIGITAL DOST</h1>
+                <p class="text-sm text-gray-700 font-semibold">તમામ ઓનલાઈન સેવાઓનું એક જ સ્થળ</p>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-8 md:py-12">
 
         <!-- Hero Section -->
-        <section class="text-center mb-12">
-            <h2 class="text-4xl font-bold text-digital-dost-blue mb-2">તમારી બધી ઓનલાઈન સેવાઓ માટે</h2>
-            <p class="text-2xl text-gray-800 mb-6 font-semibold">વન-સ્ટોપ સોલ્યુશન, હવે ઘરે બેઠા!</p>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">કોઈપણ સરકારી ફોર્મ ભરવાથી લઈને દસ્તાવેજ સુધારણા સુધી, અમે તમારી બધી ડિજિટલ જરૂરિયાતો પૂરી કરીએ છીએ. ફક્ત તમારા ડોક્યુમેન્ટ્સ વોટ્સએપ કરો અને બાકીનું અમારા પર છોડી દો.</p>
+        <section class="text-center mb-16 fade-in-section">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-digital-dost-blue mb-3">તમારી બધી ઓનલાઈન જરૂરિયાતો માટે</h2>
+            <p class="text-2xl text-gray-800 mb-6 font-bold font-display">વન-સ્ટોપ સોલ્યુશન, હવે ઘરે બેઠા!</p>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">કોઈપણ સરકારી ફોર્મ ભરવાથી લઈને દસ્તાવેજ સુધારણા સુધી, અમે તમારી બધી ડિજિટલ જરૂરિયાતો પૂરી કરીએ છીએ. ફક્ત તમારા ડોક્યુમેન્ટ્સ વોટ્સએપ કરો અને બાકીનું અમારા પર છોડી દો.</p>
         </section>
 
         <!-- Services Section -->
-        <section id="services" class="mb-12">
-            <h3 class="text-3xl font-bold text-center text-digital-dost-blue mb-8">અમારી સેવાઓ</h3>
+        <section id="services" class="mb-16 fade-in-section">
+            <h3 class="text-4xl font-bold text-center text-digital-dost-blue mb-10">અમારી સેવાઓ</h3>
             
-            <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
-                <button data-tab="tab1" class="tab active text-sm md:text-base font-bold py-2 px-4 rounded-full transition-all duration-300 shadow-md bg-white">બધી સેવાઓ</button>
-                <button data-tab="tab2" class="tab text-sm md:text-base font-bold py-2 px-4 rounded-full transition-all duration-300 shadow-md bg-white">સરકારી નોકરી</button>
-                <button data-tab="tab3" class="tab text-sm md:text-base font-bold py-2 px-4 rounded-full transition-all duration-300 shadow-md bg-white">એડમિશન</button>
-                <button data-tab="tab4" class="tab text-sm md:text-base font-bold py-2 px-4 rounded-full transition-all duration-300 shadow-md bg-white">દસ્તાવેજ</button>
-                <button data-tab="tab5" class="tab text-sm md:text-base font-bold py-2 px-4 rounded-full transition-all duration-300 shadow-md bg-white">અન્ય સેવાઓ</button>
+            <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-10">
+                <button data-tab="tab1" class="tab active text-sm md:text-base font-bold py-2 px-5 rounded-full transition-all duration-300 shadow-md bg-white text-gray-700">બધી સેવાઓ</button>
+                <button data-tab="tab2" class="tab text-sm md:text-base font-bold py-2 px-5 rounded-full transition-all duration-300 shadow-md bg-white text-gray-700">સરકારી નોકરી</button>
+                <button data-tab="tab3" class="tab text-sm md:text-base font-bold py-2 px-5 rounded-full transition-all duration-300 shadow-md bg-white text-gray-700">એડમિશન</button>
+                <button data-tab="tab4" class="tab text-sm md:text-base font-bold py-2 px-5 rounded-full transition-all duration-300 shadow-md bg-white text-gray-700">દસ્તાવેજ</button>
+                <button data-tab="tab5" class="tab text-sm md:text-base font-bold py-2 px-5 rounded-full transition-all duration-300 shadow-md bg-white text-gray-700">અન્ય સેવાઓ</button>
             </div>
 
-            <div id="tab-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="tab-content" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <!-- Services will be injected here by JS -->
             </div>
         </section>
         
         <!-- AI Helper Section -->
-        <section id="ai-helpers" class="mb-12 bg-white p-6 md:p-8 rounded-2xl shadow-lg border-2 border-digital-dost-blue">
-            <h3 class="text-3xl font-bold text-center text-digital-dost-blue mb-2">✨ AI-Powered Helpers</h3>
-            <p class="text-center text-gray-600 mb-8">તમારું કામ વધુ સરળ બનાવવા માટે અમારા સ્માર્ટ સાધનોનો પ્રયાસ કરો.</p>
+        <section id="ai-helpers" class="mb-16 fade-in-section bg-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-digital-dost-blue">
+            <h3 class="text-4xl font-bold text-center text-digital-dost-blue mb-2">✨ AI-Powered Helpers</h3>
+            <p class="text-center text-gray-600 mb-10">તમારું કામ વધુ સરળ બનાવવા માટે અમારા સ્માર્ટ સાધનોનો પ્રયાસ કરો.</p>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Resume Helper Card -->
-                <div class="bg-yellow-50 p-6 rounded-xl border border-yellow-300">
+                <div class="bg-yellow-50 p-6 rounded-xl border border-yellow-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
                     <h4 class="text-2xl font-bold text-digital-dost-blue mb-4">Resume/CV Helper</h4>
                     <p class="text-gray-600 mb-4">તમારો જોબ ટાઇટલ અને મુખ્ય સ્કિલ્સ દાખલ કરો અને એક પ્રોફેશનલ સારાંશ મેળવો.</p>
                     <div class="space-y-4">
-                        <input type="text" id="jobTitle" placeholder="દા.ત. Software Developer" class="w-full p-2 border border-gray-300 rounded-md">
-                        <textarea id="jobSkills" placeholder="તમારી મુખ્ય સ્કિલ્સ લખો (દા.ત. Python, JavaScript, Team Leadership)" rows="3" class="w-full p-2 border border-gray-300 rounded-md"></textarea>
-                        <button id="generateResume" class="w-full digital-dost-blue text-white font-bold py-2 px-4 rounded-md hover:bg-blue-800 transition-all duration-300 flex items-center justify-center gap-2">
+                        <input type="text" id="jobTitle" placeholder="દા.ત. Software Developer" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition">
+                        <textarea id="jobSkills" placeholder="તમારી મુખ્ય સ્કિલ્સ લખો (દા.ત. Python, JavaScript)" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"></textarea>
+                        <button id="generateResume" class="w-full digital-dost-blue-bg text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                             <span>બનાવો</span>
                             <div id="resumeLoader" class="loader hidden"></div>
                         </button>
                     </div>
                 </div>
                 <!-- Tagline Generator Card -->
-                <div class="bg-blue-50 p-6 rounded-xl border border-blue-300">
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
                     <h4 class="text-2xl font-bold text-digital-dost-blue mb-4">Tagline Generator</h4>
                     <p class="text-gray-600 mb-4">તમારા વ્યવસાયનો પ્રકાર દાખલ કરો અને આકર્ષક ટેગલાઇન્સ મેળવો.</p>
                     <div class="space-y-4">
-                        <input type="text" id="businessType" placeholder="દા.ત. ચા ની દુકાન, કપડાની દુકાન" class="w-full p-2 border border-gray-300 rounded-md">
-                        <button id="generateTagline" class="w-full digital-dost-blue text-white font-bold py-2 px-4 rounded-md hover:bg-blue-800 transition-all duration-300 flex items-center justify-center gap-2">
+                        <input type="text" id="businessType" placeholder="દા.ત. ચા ની દુકાન, કપડાની દુકાન" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
+                        <button id="generateTagline" class="w-full digital-dost-blue-bg text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                             <span>બનાવો</span>
                             <div id="taglineLoader" class="loader hidden"></div>
                         </button>
@@ -113,25 +186,26 @@
         </section>
 
         <!-- How it works -->
-        <section class="text-center bg-white p-8 rounded-2xl shadow-lg border-2 border-digital-dost-blue border-dashed">
-            <h3 class="text-3xl font-bold text-digital-dost-blue mb-8">કામ કેવી રીતે થાય છે?</h3>
-            <div class="flex flex-col md:flex-row justify-around items-center gap-8">
-                 <div class="flex flex-col items-center text-center max-w-xs">
-                    <div class="digital-dost-blue text-white rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold mb-3 shadow-xl">1</div>
+        <section class="text-center bg-white p-8 md:p-12 rounded-2xl shadow-xl border-2 border-digital-dost-blue border-dashed fade-in-section">
+            <h3 class="text-4xl font-bold text-digital-dost-blue mb-10">કામ કેવી રીતે થાય છે?</h3>
+            <div class="relative flex flex-col md:flex-row justify-around items-center gap-8">
+                 <!-- Dashed line for desktop -->
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 border-t-2 border-dashed border-gray-300" style="transform: translateY(-50%); z-index: 0;"></div>
+                
+                <div class="relative z-10 flex flex-col items-center text-center max-w-xs">
+                    <div class="bg-digital-dost-blue text-black rounded-full h-20 w-20 flex items-center justify-center text-3xl font-bold mb-4 shadow-xl border-4 border-white">1</div>
                     <h4 class="text-xl font-semibold text-gray-800">સેવા પસંદ કરો</h4>
                     <p class="text-gray-600">તમારે જે કામ કરાવવું છે તે જણાવો</p>
                 </div>
-                <div class="text-2xl text-digital-dost-blue hidden md:block">→</div>
-                 <div class="text-2xl text-digital-dost-blue md:hidden">↓</div>
-                <div class="flex flex-col items-center text-center max-w-xs">
-                    <div class="digital-dost-blue text-white rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold mb-3 shadow-xl">2</div>
+                
+                <div class="relative z-10 flex flex-col items-center text-center max-w-xs">
+                    <div class="bg-digital-dost-blue text-black rounded-full h-20 w-20 flex items-center justify-center text-3xl font-bold mb-4 shadow-xl border-4 border-white">2</div>
                     <h4 class="text-xl font-semibold text-gray-800">WhatsApp પર ડોક્યુમેન્ટ્સ મોકલો</h4>
                     <p class="text-gray-600">જરૂરી દસ્તાવેજો અમને મોકલી આપો</p>
                 </div>
-                <div class="text-2xl text-digital-dost-blue hidden md:block">→</div>
-                 <div class="text-2xl text-digital-dost-blue md:hidden">↓</div>
-                <div class="flex flex-col items-center text-center max-w-xs">
-                    <div class="digital-dost-blue text-white rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold mb-3 shadow-xl">3</div>
+                
+                <div class="relative z-10 flex flex-col items-center text-center max-w-xs">
+                    <div class="bg-digital-dost-blue text-black rounded-full h-20 w-20 flex items-center justify-center text-3xl font-bold mb-4 shadow-xl border-4 border-white">3</div>
                     <h4 class="text-xl font-semibold text-gray-800">કામ પૂર્ણ!</h4>
                     <p class="text-gray-600">તમારું કામ ઘરે બેઠા થઈ જશે</p>
                 </div>
@@ -140,34 +214,40 @@
     </main>
 
     <!-- Footer -->
-    <footer class="digital-dost-yellow mt-12 p-8 text-center">
-        <h3 class="text-2xl font-bold text-digital-dost-blue">કોઈપણ સેવા માટે રાહ જોવાની જરૂર નથી!</h3>
-        <p class="text-lg text-gray-800 my-4">આજે જ સંપર્ક કરો અને તમારું કામ સરળતાથી કરાવો.</p>
-        <a href="https://wa.me/917203811467?text=Hi%20Digital%20Dost,%20I%20want%20to%20know%20more%20about%20your%20services." target="_blank" class="inline-block digital-dost-blue text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-blue-800 transition-all duration-300 transform hover:scale-105">
-            <span class="mr-2">📱</span> WhatsApp કરો: 7203811467
-        </a>
+    <footer class="digital-dost-yellow mt-16 p-8 text-center">
+        <div class="container mx-auto">
+            <h3 class="text-3xl font-bold text-digital-dost-blue">કોઈપણ સેવા માટે રાહ જોવાની જરૂર નથી!</h3>
+            <p class="text-lg text-gray-800 my-4">આજે જ સંપર્ક કરો અને તમારું કામ સરળતાથી કરાવો.</p>
+            <a href="https://wa.me/917203811467?text=Hi%20Digital%20Dost,%20I%20want%20to%20know%20more%20about%20your%20services." target="_blank" class="inline-block gradient-btn text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <span class="mr-2">📱</span> WhatsApp કરો: 7203811467
+            </a>
+        </div>
     </footer>
     
     <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/917203811467?text=Hi%20Digital%20Dost,%20I%20want%20to%20know%20more%20about%20your%20services." target="_blank" class="fixed bottom-6 right-6 digital-dost-blue text-white h-16 w-16 rounded-full flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300">
+    <a href="https://wa.me/917203811467?text=Hi%20Digital%20Dost,%20I%20want%20to%20know%20more%20about%20your%20services." target="_blank" class="fixed bottom-6 right-6 digital-dost-blue-bg text-white h-16 w-16 rounded-full flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300 z-40">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 24 24" fill="currentColor">
             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 4.315 1.919 6.066l-1.225 4.485 4.584-1.201z"/>
         </svg>
     </a>
 
     <!-- Modal for AI results -->
-    <div id="aiResultModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
+    <div id="aiResultModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto transform transition-all duration-300 scale-95 opacity-0" id="modal-content-area">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
                 <h3 id="modalTitle" class="text-2xl font-bold text-digital-dost-blue">AI પરિણામ</h3>
-                <button id="closeModal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-800 text-3xl transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
             </div>
-            <div id="modalContent" class="text-gray-700 whitespace-pre-wrap"></div>
+            <div id="modalContent" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
         </div>
     </div>
 
 
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+
     const services = [
         { category: 'સરકારી નોકરી', name: 'PSI, કોન્સ્ટેબલ, GPSC ક્લાસ 1-2-3', icon: '👮' },
         { category: 'સરકારી નોકરી', name: 'તલાટી, SSC (GD, MTS, CHSL, CGL)', icon: '📝' },
@@ -198,10 +278,10 @@
         tabContent.innerHTML = '';
         const filteredServices = filter === 'બધી સેવાઓ' ? services : services.filter(s => s.category === filter);
         
-        filteredServices.forEach(service => {
+        filteredServices.forEach((service, index) => {
             const serviceCard = `
-                <div class="bg-white rounded-xl shadow-md p-6 flex items-center gap-4 hover:shadow-xl hover:scale-105 transition-all duration-300 border-l-4 border-digital-dost-blue">
-                    <div class="text-3xl">${service.icon}</div>
+                <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-5 hover:shadow-xl hover:transform hover:-translate-y-1 transition-all duration-300 border-l-4 border-transparent hover:border-digital-dost-blue" style="animation-delay: ${index * 50}ms">
+                    <div class="text-4xl">${service.icon}</div>
                     <div>
                         <h4 class="font-bold text-lg text-digital-dost-blue">${service.name}</h4>
                         <p class="text-sm text-gray-500">${service.category}</p>
@@ -216,14 +296,7 @@
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            let filter;
-            switch(tab.dataset.tab) {
-                case 'tab1': filter = 'બધી સેવાઓ'; break;
-                case 'tab2': filter = 'સરકારી નોકરી'; break;
-                case 'tab3': filter = 'એડમિશન'; break;
-                case 'tab4': filter = 'દસ્તાવેજ'; break;
-                case 'tab5': filter = 'અન્ય સેવાઓ'; break;
-            }
+            const filter = tab.innerText;
             renderServices(filter);
         });
     });
@@ -231,23 +304,63 @@
     // Initial render
     renderServices();
 
-    // AI Helper Logic
-    const generateResumeBtn = document.getElementById('generateResume');
-    const generateTaglineBtn = document.getElementById('generateTagline');
-    const resumeLoader = document.getElementById('resumeLoader');
-    const taglineLoader = document.getElementById('taglineLoader');
-    
+    // --- AI Helper & Modal Logic ---
     const modal = document.getElementById('aiResultModal');
+    const modalContentArea = document.getElementById('modal-content-area');
     const modalTitle = document.getElementById('modalTitle');
     const modalContent = document.getElementById('modalContent');
     const closeModalBtn = document.getElementById('closeModal');
 
-    closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    function showModal() {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContentArea.classList.remove('scale-95', 'opacity-0');
+            modalContentArea.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
 
-    async function callGeminiAPI(prompt) {
+    function hideModal() {
+        modalContentArea.classList.add('scale-95', 'opacity-0');
+        modalContentArea.classList.remove('scale-100', 'opacity-100');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    closeModalBtn.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            hideModal();
+        }
+    });
+
+    // --- Toast Notification Logic ---
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const icon = type === 'error' ? '❗' : '✅';
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                container.removeChild(toast);
+            }, 500);
+        }, 3000);
+    }
+
+    // --- Gemini API Call Logic ---
+    async function callGeminiAPI(prompt, loaderElement, buttonElement) {
+        loaderElement.classList.remove('hidden');
+        buttonElement.disabled = true;
+
         let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
         const payload = { contents: chatHistory };
-        const apiKey = ""; 
+        const apiKey = ""; // API key will be managed by the environment
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
         
         try {
@@ -263,70 +376,85 @@
 
             const result = await response.json();
 
-            if (result.candidates && result.candidates.length > 0 &&
-                result.candidates[0].content && result.candidates[0].content.parts &&
-                result.candidates[0].content.parts.length > 0) {
+            if (result.candidates && result.candidates[0]?.content?.parts?.[0]) {
                 return result.candidates[0].content.parts[0].text;
             } else {
                 console.error("Unexpected API response structure:", result);
-                return "માફ કરશો, કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.";
+                throw new Error("API માંથી અણધાર્યો પ્રતિસાદ મળ્યો.");
             }
         } catch (error) {
             console.error("Error calling Gemini API:", error);
-            return `માફ કરશો, એક ભૂલ આવી છે: ${error.message}`;
+            showToast(`ભૂલ આવી છે: ${error.message}`, 'error');
+            return null;
+        } finally {
+            loaderElement.classList.add('hidden');
+            buttonElement.disabled = false;
         }
     }
 
+    // Event Listeners for AI Helpers
+    const generateResumeBtn = document.getElementById('generateResume');
+    const generateTaglineBtn = document.getElementById('generateTagline');
+    const resumeLoader = document.getElementById('resumeLoader');
+    const taglineLoader = document.getElementById('taglineLoader');
+
     generateResumeBtn.addEventListener('click', async () => {
-        const jobTitle = document.getElementById('jobTitle').value;
-        const jobSkills = document.getElementById('jobSkills').value;
+        const jobTitle = document.getElementById('jobTitle').value.trim();
+        const jobSkills = document.getElementById('jobSkills').value.trim();
 
         if (!jobTitle || !jobSkills) {
-            alert("કૃપા કરીને જોબ ટાઇટલ અને સ્કિલ્સ દાખલ કરો.");
+            showToast("કૃપા કરીને જોબ ટાઇટલ અને સ્કિલ્સ દાખલ કરો.", 'error');
             return;
         }
-
-        resumeLoader.classList.remove('hidden');
-        generateResumeBtn.disabled = true;
 
         const prompt = `Generate a professional resume summary for a "${jobTitle}" with the following key skills: "${jobSkills}". The summary should be concise and impactful, suitable for a professional resume. Provide 3 distinct options, each under a clear heading like 'Option 1', 'Option 2', etc. The response should be in English.`;
         
-        const result = await callGeminiAPI(prompt);
+        const result = await callGeminiAPI(prompt, resumeLoader, generateResumeBtn);
         
-        modalTitle.innerText = "તમારા Resume માટે સારાંશ";
-        modalContent.innerText = result;
-        modal.classList.remove('hidden');
-
-        resumeLoader.classList.add('hidden');
-        generateResumeBtn.disabled = false;
+        if (result) {
+            modalTitle.innerText = "તમારા Resume માટે સારાંશ";
+            modalContent.innerText = result;
+            showModal();
+        }
     });
 
     generateTaglineBtn.addEventListener('click', async () => {
-        const businessType = document.getElementById('businessType').value;
+        const businessType = document.getElementById('businessType').value.trim();
 
         if (!businessType) {
-            alert("કૃપા કરીને વ્યવસાયનો પ્રકાર દાખલ કરો.");
+            showToast("કૃપા કરીને વ્યવસાયનો પ્રકાર દાખલ કરો.", 'error');
             return;
         }
 
-        taglineLoader.classList.remove('hidden');
-        generateTaglineBtn.disabled = true;
-
         const prompt = `Generate 5 catchy and professional taglines in Gujarati for a "${businessType}" business in India. The taglines should be short, memorable, and appealing to a local audience. Present them as a numbered list.`;
         
-        const result = await callGeminiAPI(prompt);
+        const result = await callGeminiAPI(prompt, taglineLoader, generateTaglineBtn);
 
-        modalTitle.innerText = "તમારા વ્યવસાય માટે ટેગલાઇન્સ";
-        modalContent.innerText = result;
-        modal.classList.remove('hidden');
-
-        taglineLoader.classList.add('hidden');
-        generateTaglineBtn.disabled = false;
+        if (result) {
+            modalTitle.innerText = "તમારા વ્યવસાય માટે ટેગલાઇન્સ";
+            modalContent.innerText = result;
+            showModal();
+        }
     });
 
+    // --- Scroll Animation Observer ---
+    const sections = document.querySelectorAll('.fade-in-section');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    sections.forEach(section => {
+        observer.observe(section);
+    });
+
+});
 </script>
 
 </body>
 </html>
-
-                                        
